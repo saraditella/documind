@@ -5,6 +5,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
+from langgraph_sdk.auth.exceptions import HTTPException
 
 from models import DocumentInfo
 
@@ -56,5 +57,12 @@ rag_chain = (
 
 @app.get("/extract-data")
 async def extract_data(request: str):
-    result = rag_chain.invoke(request)
-    return result
+    try:
+        result = rag_chain.invoke(request)
+        return result
+    except Exception as error:
+        print(f"Errore durante l'estrazione: {error}")
+        raise HTTPException(
+            status_code=503,
+            detail="Il servizio per estrarre i dati non è al momento disponibile. Riprovare più tardi."
+        )
